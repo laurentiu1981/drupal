@@ -299,7 +299,22 @@ class FieldCollectionItemEntity extends Entity {
           $query->age(FIELD_LOAD_REVISION);
         }
         $result = $query->execute();
-        list($this->hostEntityType, $data) = each($result);
+        if (empty($result)) {
+          // The new revision id doesn't exist in the DB yet.
+          // We must set hostEntityType to avoid issues with entity_extract_ids.
+          $query->age(FIELD_LOAD_REVISION);
+          $result = $query->execute();
+          $this->hostEntityType = key($result);
+          // Verify it's a valid entity type.
+          if (is_string($this->hostEntityType) && entity_get_info($this->hostEntityType)) {
+            $host = reset($result[$this->hostEntityType]);
+            $data = array(
+              $host->nid => $host,
+            );
+          }
+        } else {
+          list($this->hostEntityType, $data) = each($result);
+        }
 
         if ($this->isInUse()) {
           $this->hostEntityId = $data ? key($data) : FALSE;
@@ -383,9 +398,6 @@ class FieldCollectionItemEntity extends Entity {
    *   revision updates might be skipped. Use with care.
    */
   public function save($skip_host_save = FALSE) {
-    if ($this->hostEntity) {
-      return;
-    }
     // Make sure we have a host entity during creation.
     if (!empty($this->is_new) && !(isset($this->hostEntityId) || isset($this->hostEntity) || isset($this->hostEntityRevisionId))) {
       throw new Exception("Unable to create a field collection item without a given host entity.");

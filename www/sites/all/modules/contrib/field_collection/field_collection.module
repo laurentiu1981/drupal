@@ -399,7 +399,7 @@ function field_collection_field_settings_form($field, $instance) {
 function field_collection_field_insert($host_entity_type, $host_entity, $field, $instance, $langcode, &$items) {
   foreach ($items as &$item) {
     if ($entity = field_collection_field_get_entity($item)) {
-      if (!empty($host_entity->is_new) && empty($entity->is_new)) {
+      if (!empty($host_entity->is_new) && empty($entity->is_new) && !in_array($entity->field_name, _local_patches_get_ief_field_collection_items_bundles())) {
         // If the host entity is new but we have a field_collection that is not
         // new, it means that its host is being cloned. Thus we need to clone
         // the field collection entity as well.

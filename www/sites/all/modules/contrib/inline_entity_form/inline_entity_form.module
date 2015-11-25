@@ -1536,6 +1536,8 @@ function inline_entity_form_field_attach_submit($parent_entity_type, $parent_ent
       $need_reset = false;
       foreach ($values['entities'] as $item) {
         if ($item['needs_save']) {
+          $item['entity']->ief_submit = TRUE;
+          $item['entity']->revision = (!empty($form_state['node']->revision) ? TRUE : FALSE);
           $controller->save($item['entity'], $context);
           $need_reset = true;
         }

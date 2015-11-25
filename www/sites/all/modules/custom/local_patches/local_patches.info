@@ -1,0 +1,6 @@
+name = Custom Patches
+description = "Custom patches"
+package = Custom
+core = 7.x
+
+files[] = includes/ief/field_collection.inline_entity_form.inc

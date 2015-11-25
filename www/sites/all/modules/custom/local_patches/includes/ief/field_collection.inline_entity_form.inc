@@ -12,9 +12,9 @@ class FieldCollectionInlineEntityFormController extends EntityInlineEntityFormCo
    */
   public function tableFields($bundles) {
     $fields = array();
-    $fields['field_title'] = array(
+    $fields['field_file_type'] = array(
       'type' => 'field',
-      'label' => t('Lesson'),
+      'label' => t('Title'),
       'weight' => 1,
     );
 
@@ -55,15 +55,16 @@ class FieldCollectionInlineEntityFormController extends EntityInlineEntityFormCo
 
     field_attach_form('field_collection_item', $fc_item, $entity_form, $form_state);
 
-    $lesson_parents = array_slice($entity_form['#parents'], 0, 2);
-    $lesson_parents[] = '#entity';
-    $host_entity = drupal_array_get_nested_value($form_state['complete form'], $lesson_parents);
-    $entity_form['#hostEntity'] = $host_entity;
-
-    // Add all fields to the main fieldset.
-    foreach (field_info_instances('field_collection_item', $fc_item->field_name) as $a => $instance) {
-      $entity_form[$instance['field_name']]['#fieldset'] = 'field_collection_item_details';
+    $parents = array();
+    foreach ($entity_form['#parents'] as $parent_key) {
+      $parents[] = $parent_key;
+      if (is_numeric($parent_key)) {
+        break;
+      }
     }
+    $parents[] = '#entity';
+    $host_entity = drupal_array_get_nested_value($form_state['complete form'], $parents);
+    $entity_form['#hostEntity'] = $host_entity;
 
     return $entity_form;
   }
@@ -92,7 +93,9 @@ class FieldCollectionInlineEntityFormController extends EntityInlineEntityFormCo
 
     if (!empty($fc_item->is_new)) {
       $host_entity = $entity_form['#hostEntity'];
-      $fc_item->setHostEntity('node', $host_entity);
+      $class_name = get_class($host_entity);
+      $entity_type = ($class_name == 'FieldCollectionItemEntity' ? 'field_collection_item' : 'node');
+      $fc_item->setHostEntity($entity_type, $host_entity);
     }
   }
 

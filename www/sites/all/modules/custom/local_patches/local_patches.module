@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function local_patches_entity_info_alter(&$entity_info) {
+  if (isset($entity_info['field_collection_item'])) {
+    $entity_info['field_collection_item']['inline entity form'] = array(
+      'controller' => 'FieldCollectionInlineEntityFormController',
+    );
+  }
+}
+
+/**
+ * Implements hook_field_widget_info_alter().
+ */
+function local_patches_field_widget_info_alter(&$info) {
+  // Add a setting to a widget type.
+  $info['inline_entity_form_single']['field types'][] = 'field_collection';
+  $info['inline_entity_form']['field types'][] = 'field_collection';
+}
+
+/**
+ * Implements hook_inline_entity_form_settings_alter().
+ */
+function local_patches_inline_entity_form_settings_alter(&$settings, $field, $instance) {
+  if ($field['type'] == 'field_collection') {
+    $settings['entity_type'] = 'field_collection_item';
+    $settings['column'] = 'value';
+    $settings['column_revision'] = 'revision_id';
+    $settings['bundles'] = array($field['field_name']);
+  }
+}
+
+function local_patches_inline_entity_form_entity_form_alter(&$entity_form, &$form_state) {
+//  if ($entity_form['#entity_type'] == 'field_collection_item') {
+
+//  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function local_patches_entity_presave($entity, $type) {
+  if ($type == 'field_collection_item') {
+    if (empty($entity->ief_submit) && in_array($entity->field_name, _local_patches_get_ief_field_collection_items_bundles())) {
+      $entity->hostEntity();
+      $entity->revision = FALSE;
+    }
+    else {
+      $entity->hostEntity();
+    }
+  }
+}
+
+function _local_patches_get_ief_field_collection_items_bundles() {
+  return array(
+    'field_details',
+  );
+}
